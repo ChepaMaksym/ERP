@@ -10,13 +10,10 @@ const useTableData = <T extends EditableRow>(endpoint: string) => {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await axios.get(API_URL);
-      const dataWithIds = response.data.map((item: any, index: number) => ({
-        ...item,
-        rowId: index + 1,
-      }));
-      setData(dataWithIds);
+      setData(response.data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -36,34 +33,38 @@ const useTableData = <T extends EditableRow>(endpoint: string) => {
 
   const addRow = async (newRow: T) => {
     try {
-      const response = await axios.post(API_URL, newRow, {
+      await axios.post(API_URL, newRow, {
         headers: { "Content-Type": "application/json" },
       });
-      setData((prevData) => [...prevData, response.data]);
+      await fetchData();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Add row error");
+    } finally {
+      setLoading(false);
     }
   };
 
   const editRow = async (id: number, updatedRow: T) => {
     try {
-      const response = await axios.put(`${API_URL}/${id}`, updatedRow, {
+      await axios.put(`${API_URL}/${id}`, updatedRow, {
         headers: { "Content-Type": "application/json" },
       });
-      setData((prevData) =>
-        prevData.map((row) => (row.rowId === id ? { ...row, ...updatedRow } : row))
-      );
+      await fetchData();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Edit row error");
+    } finally {
+      setLoading(false);
     }
   };
 
   const deleteRow = async (id: number) => {
     try {
       await axios.delete(`${API_URL}/${id}`);
-      setData((prevData) => prevData.filter((row) => row.rowId !== id));
+      await fetchData();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Delete row error");
+    } finally {
+      setLoading(false);
     }
   };
 

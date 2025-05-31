@@ -3,7 +3,7 @@ using CRM.Models;
 
 namespace CRM.Services.Interface
 {
-    public interface IGardenService
+    public interface IFieldService
     {
         Task<IEnumerable<Garden>> GetAllAsync();
         Task<Garden> GetByIdAsync(int id);

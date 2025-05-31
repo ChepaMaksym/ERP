@@ -15,17 +15,11 @@ var connectionString = configuration.GetConnectionString("DefaultConnection")
 
 builder.Services.AddControllers();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "URL Shortener API", Version = "v1" });
-});
-
 
 builder.Services.AddTransient<ISoilTypeService>(provider =>
     new SoilTypeService(connectionString));
 
-builder.Services.AddTransient<IGardenService>(provider =>
+builder.Services.AddTransient<IFieldService>(provider =>
     new GardenService(connectionString));
 
 builder.Services.AddTransient<IPlotService>(provider =>
@@ -46,7 +40,7 @@ builder.Services.AddTransient<IHarvestService>(provider =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v2", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "URL Shortener API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "FRM API", Version = "v1" });
 });
 
 builder.Services.AddCors(op =>
@@ -57,8 +51,7 @@ builder.Services.AddCors(op =>
         policy.AllowAnyMethod();
         policy.AllowAnyHeader();
     });
-}
-);
+});
 
 
 var app = builder.Build();
@@ -73,7 +66,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v2/swagger.json", "URL Shortener API v2");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "FRM API v1");
     });
 }
 

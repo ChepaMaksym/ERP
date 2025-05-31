@@ -8,9 +8,9 @@ namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GardenController(IGardenService gardenService, ILogger<GardenController> logger) : BaseController<Garden>(logger)
+    public class FieldController(IFieldService gardenService, ILogger<FieldController> logger) : BaseController<Garden>(logger)
     {
-        private readonly IGardenService _gardenService = gardenService;
+        private readonly IFieldService _gardenService = gardenService;
 
         [HttpGet]
         public async Task<IActionResult> GetAll()

@@ -33,6 +33,7 @@ const EditableCell = ({
 
 const ActionButtons = ({
   row,
+  primaryKey,
   isEditing,
   onEditClick,
   onDeleteClick,
@@ -40,6 +41,7 @@ const ActionButtons = ({
   onCancelClick,
 }: {
   row: EditableRow;
+  primaryKey: string;
   isEditing: boolean;
   onEditClick: (id: number) => void;
   onDeleteClick: (id: number) => void;
@@ -49,14 +51,13 @@ const ActionButtons = ({
   <TableCell>
     {isEditing  ? (
       <>
-      // проблема з рендерингом
-        <Button onClick={() => onSaveClick(row?.rowId)}>Save</Button>
-        <Button onClick={() => onCancelClick(row?.rowId)}>Cancel</Button>
+        <Button onClick={() => onSaveClick(row[primaryKey])}>Save</Button>
+        <Button onClick={() => onCancelClick(row[primaryKey])}>Cancel</Button>
       </>
     ) : (
       <>
-        <Button onClick={() => onEditClick(row?.rowId)}>Edit</Button>
-        <Button onClick={() => onDeleteClick(row?.rowId)}>Delete</Button>
+        <Button onClick={() => onEditClick(row[primaryKey])}>Edit</Button>
+        <Button onClick={() => onDeleteClick(row[primaryKey])}>Delete</Button>
       </>
     )}
   </TableCell>
@@ -64,8 +65,10 @@ const ActionButtons = ({
 
 function Grid<T extends BaseTable>({
   tableData,
+  primaryKey,
 }: {
   tableData: ReturnType<typeof useTableData<T>>;
+  primaryKey: keyof T;
 }) {
   const { data, loading, editRow, deleteRow, error } = tableData;
   const [rows, setRows] = useState<EditableRow[]>([]);
@@ -77,13 +80,13 @@ function Grid<T extends BaseTable>({
   }, [data]);
 
   const getColumns = (row: EditableRow) => {
-    return row ? Object.keys(row).filter((key) => key !== "rowId" && key !== "isEditing") : [];
+    return row ? Object.keys(row).filter((key) => key !== "isEditing") : [];
   };
 
   const handleEditChange = (rowId: number, field: string, value: any) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
-        row.rowId === rowId ? { ...row, [field]: value } : row
+        row[primaryKey] === rowId ? { ...row, [field]: value } : row
       )
     );
   };  
@@ -91,27 +94,24 @@ function Grid<T extends BaseTable>({
   const handleEdit = (rowId: number) => {
     setRows((prevRows) =>
       prevRows.map((row) =>
-        row.rowId === rowId ? { ...row, isEditing: true } : row
+        row[primaryKey] === rowId ? { ...row, isEditing: true } : row
       )
     );
   };
 
   const handleSave = async (rowId: number) => {
-    const rowToSave = rows.find((row) => row.rowId === rowId);
+    const rowToSave = rows.find((row) => row[primaryKey] === rowId);
     if (rowToSave) {
       await editRow(rowId, rowToSave);
-      setRows((prevRows) =>
-        prevRows.map((row) =>
-          row.rowId === rowId ? { ...row, isEditing: false } : row
-        )
-      );
     }
   };
 
   const handleCancel = (rowId: number) => {
-    setRows((prevRows) =>
-      prevRows.map((row) =>
-        row.rowId === rowId ? { ...row, isEditing: false } : row
+    setRows((prevRows) => 
+      prevRows.map((row) => 
+        row[primaryKey] === rowId 
+          ? { ...data.find(d => d[primaryKey] === rowId)!, isEditing: false } 
+          : row
       )
     );
   };
@@ -123,13 +123,14 @@ function Grid<T extends BaseTable>({
   if (error) {
     return <div>{error}</div>;
   }
-
+  if(data.length == 0)
+    return <div>No data</div>; 
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>ID</TableCell>
+            <TableCell>Number</TableCell>
             {rows[0] &&
               getColumns(rows[0]).map((column) => (
                 <TableCell key={column}>
@@ -140,22 +141,24 @@ function Grid<T extends BaseTable>({
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => {
+          {rows.map((row, index) => {
+            const rowKey = row[primaryKey];
             return (
-            <TableRow key={row.rowId}>
-              <TableCell>{row.rowId}</TableCell>
+            <TableRow key={String(rowKey)}>
+              <TableCell>{index + 1}</TableCell>
               {getColumns(row).map((column) => (
                 <EditableCell
-                  key={`${row.rowId}-${column}`}
+                  key={`$${String(rowKey)}-${column}`}
                   value={row[column as keyof EditableRow]}
                   isEditing={row.isEditing}
                   onChange={handleEditChange}
                   column={column}
-                  rowId={row.rowId}
+                  rowId={rowKey as number}
                 />
               ))}
               <ActionButtons
                 row={row}
+                primaryKey={primaryKey}
                 isEditing={row.isEditing}
                 onEditClick={handleEdit}
                 onDeleteClick={deleteRow}

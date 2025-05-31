@@ -4,10 +4,11 @@ using CRM.QueryManagers;
 using CRM.QueryManagers.Tables;
 using CRM.Services.Interface;
 using Microsoft.Data.SqlClient;
+using System.Diagnostics;
 
 namespace CRM.Services
 {
-    public class GardenService(string connectionString) : IGardenService
+    public class GardenService(string connectionString) : IFieldService
     {
         private readonly string _connectionString = connectionString;
 
@@ -87,13 +88,19 @@ namespace CRM.Services
             var command = new SqlCommand(GardenQueryManager.DeleteGarden, connection);
             command.Parameters.AddWithValue(GardenQueryManager.IdWithAt, id);
             await connection.OpenAsync();
-
-            var rowsAffected = await command.ExecuteNonQueryAsync();
-
-            if (rowsAffected == 0)
+            try
             {
-                throw new InvalidOperationException($"Garden with ID {id} not found.");
+                var rowsAffected = await command.ExecuteNonQueryAsync();
+                if (rowsAffected == 0)
+                {
+                    throw new InvalidOperationException($"Garden with ID {id} not found.");
+                }
             }
+            catch (Exception e)
+            {
+                Debug.Write(e);
+            }
+
         }
     }
 }

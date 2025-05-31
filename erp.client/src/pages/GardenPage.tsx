@@ -8,13 +8,16 @@ interface GardenGrid extends EditableRow {
   GardenId: number;
   Size: number;
 }
+enum GardenGridKeys {
+  GardenId = "gardenId",
+}
 
 const GardenPage: React.FC = () => {
-  const tableData = useTableData<GardenGrid>("garden"); 
+  const tableData = useTableData<GardenGrid>("field"); 
   return (
     <div>
       <h1>Manage Gardens</h1>
-      <Grid<GardenGrid> tableData={tableData} />
+      <Grid<GardenGrid> tableData={tableData} primaryKey={GardenGridKeys.GardenId} />
     </div>
   );
 };
