@@ -7,11 +7,12 @@ const Header: React.FC = () => {
     <AppBar position="fixed" color="primary">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Garden System
+          Field System
         </Typography>
         <Box>
           <Button color="inherit" component={RouterLink} to="/">Main</Button>
-          <Button color="inherit" component={RouterLink} to="/garden">Garden</Button>
+          <Button color="inherit" component={RouterLink} to="/analytics">Analytics</Button>
+          <Button color="inherit" component={RouterLink} to="/field">Field</Button>
           <Button color="inherit" component={RouterLink} to="/harvest">Harvest</Button>
           <Button color="inherit" component={RouterLink} to="/plant">Plant</Button>
           <Button color="inherit" component={RouterLink} to="/plot">Plot</Button>

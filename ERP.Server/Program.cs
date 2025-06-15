@@ -1,5 +1,7 @@
 using CRM.Services.Interface;
 using CRM.Services;
+using ERP.Server.Services.Interface;
+using ERP.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,7 @@ builder.Services.AddTransient<ISoilTypeService>(provider =>
     new SoilTypeService(connectionString));
 
 builder.Services.AddTransient<IFieldService>(provider =>
-    new GardenService(connectionString));
+    new FieldService(connectionString));
 
 builder.Services.AddTransient<IPlotService>(provider =>
     new PlotService(connectionString));
@@ -36,6 +38,9 @@ builder.Services.AddTransient<IWateringService>(provider =>
 
 builder.Services.AddTransient<IHarvestService>(provider =>
     new HarvestService(connectionString));
+
+builder.Services.AddTransient<IAgroAnalyticsService>(provider =>
+    new AgroAnalyticsService(connectionString));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

@@ -8,9 +8,17 @@ namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SoilTypeController(ISoilTypeService soilTypeService, ILogger<SoilTypeController> logger) : BaseController<SoilType>(logger)
+    public class SoilTypeController : BaseController<SoilType>
     {
-        private readonly ISoilTypeService _soilTypeService = soilTypeService;
+        private readonly ISoilTypeService _soilTypeService;
+        public SoilTypeController(
+        ISoilTypeService soilTypeService,
+        ILogger<SoilTypeController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _soilTypeService = soilTypeService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -18,7 +26,8 @@ namespace CRM.Controllers
             try
             {
                 var soilTypes = await _soilTypeService.GetAllAsync();
-                return Ok(soilTypes);
+
+                return Ok(new { data = soilTypes });
             }
             catch (Exception ex)
             {
@@ -52,7 +61,7 @@ namespace CRM.Controllers
             try
             {
                 int id = await _soilTypeService.AddAsync(soilType);
-                return CreatedAtAction(nameof(GetById), id, soilType);
+                return CreatedAtAction(nameof(GetById), new { id }, new SoilType(id, soilType));
             }
             catch (Exception ex)
             {

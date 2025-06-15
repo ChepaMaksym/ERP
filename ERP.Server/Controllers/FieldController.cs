@@ -1,5 +1,6 @@
 ﻿using CRM.DTO.Garden;
 using CRM.Models;
+using CRM.Services;
 using CRM.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,17 +9,25 @@ namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class FieldController(IFieldService gardenService, ILogger<FieldController> logger) : BaseController<Garden>(logger)
+    public class FieldController : BaseController<Field>
     {
-        private readonly IFieldService _gardenService = gardenService;
+        private readonly IFieldService _fieldService;
+        public FieldController(
+        IFieldService fieldService,
+        ILogger<FieldController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _fieldService = fieldService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
             {
-                var gardens = await _gardenService.GetAllAsync();
-                return Ok(gardens);
+                var gardens = await _fieldService.GetAllAsync();
+                return Ok(new { data = gardens});
             }
             catch (Exception ex)
             {
@@ -31,7 +40,7 @@ namespace CRM.Controllers
         {
             try
             {
-                var garden = await _gardenService.GetByIdAsync(id);
+                var garden = await _fieldService.GetByIdAsync(id);
                 if (garden == null)
                     return NotFound();
 
@@ -51,8 +60,8 @@ namespace CRM.Controllers
 
             try
             {
-                int id = await _gardenService.AddAsync(garden);
-                return CreatedAtAction(nameof(GetById), new { id }, new Garden { GardenId = id, Size = garden.Size });
+                int id = await _fieldService.AddAsync(garden);
+                return CreatedAtAction(nameof(GetById), new { id }, new Field(id, garden));
             }
             catch (Exception ex)
             {
@@ -71,7 +80,7 @@ namespace CRM.Controllers
 
             try
             {
-                await _gardenService.UpdateAsync(garden);
+                await _fieldService.UpdateAsync(garden);
                 return NoContent();
             }
             catch (Exception ex)
@@ -85,7 +94,7 @@ namespace CRM.Controllers
         {
             try
             {
-                await _gardenService.DeleteAsync(id);
+                await _fieldService.DeleteAsync(id);
                 return NoContent();
             }
             catch (Exception ex)

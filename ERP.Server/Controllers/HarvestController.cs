@@ -1,16 +1,27 @@
 ﻿using CRM.DTO.Harvest;
 using CRM.Models;
+using CRM.QueryManagers.Tables;
 using CRM.Services.Interface;
+using ERP.Server.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class HarvestController(IHarvestService harvestService, ILogger<HarvestController> logger) : BaseController<Harvest>(logger)
+    public class HarvestController : BaseController<Harvest>
     {
-        private readonly IHarvestService _harvestService = harvestService;
+        private readonly IHarvestService _harvestService;
+        public HarvestController(
+        IHarvestService harvestService,
+        ILogger<HarvestController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _harvestService = harvestService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -18,7 +29,20 @@ namespace CRM.Controllers
             try
             {
                 var harvest = await _harvestService.GetAllAsync();
-                return Ok(harvest);
+
+                var plantsDropdown = await GetDropdownAsync(PlantColumns.TableName, SeedColumns.Name, SeedColumns.TableName, PlantColumns.PlantId, SeedColumns.SeedId);
+
+                var response = new
+                {
+                    data = harvest,
+                    lookups = new Dictionary<string, IEnumerable<DropdownItemDTO>>
+                    {
+                        { nameof(Harvest.PlantId) , plantsDropdown }
+                    },
+                    dateFields = new[] { nameof(Harvest.Date) }
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {

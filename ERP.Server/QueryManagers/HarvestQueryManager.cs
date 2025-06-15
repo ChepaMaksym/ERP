@@ -17,6 +17,14 @@ namespace CRM.QueryManagers
         SELECT * FROM {HarvestColumns.TableName} 
         WHERE {HarvestColumns.HarvestId} = {IdWithAt}";
 
+        public const string GetAllHarvestsWithPlantName = $@"
+        SELECT 
+            h.*
+            s.name AS plant_name
+        FROM {HarvestColumns.TableName} h
+        JOIN Plants p ON h.{HarvestColumns.PlantId} = p.plant_id
+        ";
+
         public const string InsertHarvest = $@"
         INSERT INTO {HarvestColumns.TableName} (
             {HarvestColumns.PlantId}, 

@@ -1,6 +1,10 @@
-﻿using CRM.DTO.Plant;
+﻿using Azure;
+using CRM.DTO.Plant;
 using CRM.Models;
+using CRM.QueryManagers.Tables;
+using CRM.Services;
 using CRM.Services.Interface;
+using ERP.Server.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,9 +12,17 @@ namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PlantController(IPlantService plantService, ILogger<PlantController> logger) : BaseController<Plant>(logger)
+    public class PlantController : BaseController<Plant>
     {
-        private readonly IPlantService _plantService = plantService;
+        private readonly IPlantService _plantService;
+        public PlantController(
+        IPlantService plantService,
+        ILogger<PlantController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _plantService = plantService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -18,7 +30,23 @@ namespace CRM.Controllers
             try
             {
                 var plants = await _plantService.GetAllAsync();
-                return Ok(plants);
+                var seedsDropdown = await GetDropdownAsync(SeedColumns.TableName, SeedColumns.Name, primaryKey: SeedColumns.SeedId);
+                var potsDropdown = await GetDropdownAsync(PotColumns.TableName, PotColumns.Type, primaryKey: PotColumns.PotId);
+                var plotsDropdown = await GetDropdownAsync(PlotColumns.TableName, PlotColumns.Name, primaryKey: PlotColumns.PlotId);
+
+                var response = new
+                {
+                    data = plants,
+                    lookups = new Dictionary<string, IEnumerable<DropdownItemDTO>>
+                            {
+                                { nameof(Plant.SeedId) , seedsDropdown },
+                                { nameof(Plant.PotId) , potsDropdown },
+                                { nameof(Plant.PlotId) , plotsDropdown },
+                            },
+                    dateFields = new[] { nameof(Plant.PlantingDate), nameof(Plant.TransplantDate), nameof(Plant.HarvestDate) }
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -52,7 +80,7 @@ namespace CRM.Controllers
             try
             {
                 int id = await _plantService.AddAsync(plant);
-                return CreatedAtAction(nameof(GetById), id, plant);
+                return CreatedAtAction(nameof(GetById), new { id }, new Plant(id, plant));
             }
             catch (Exception ex)
             {

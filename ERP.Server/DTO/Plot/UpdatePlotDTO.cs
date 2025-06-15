@@ -13,7 +13,8 @@ namespace CRM.DTO.Plot
         [Required]
         public int SoilTypeId { get; set; }
         [Required]
-        [Range(5, 50, ErrorMessage = "Name length must be between 5 and 50 characters.")]
+        [MinLength(5, ErrorMessage = "Name must be at least 5 characters.")]
+        [MaxLength(50, ErrorMessage = "Name must be at most 50 characters.")]
         public string Name { get; set; } = string.Empty;
 
         [Required]

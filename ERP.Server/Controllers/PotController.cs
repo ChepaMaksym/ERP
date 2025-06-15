@@ -1,16 +1,27 @@
 ﻿using CRM.DTO.Pot;
 using CRM.Models;
+using CRM.QueryManagers.Tables;
 using CRM.Services.Interface;
+using ERP.Server.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PotController(IPotService potService, ILogger<PotController> logger) : BaseController<Pot>(logger)
+    public class PotController : BaseController<Pot>
     {
-        private readonly IPotService _potService = potService;
+        private readonly IPotService _potService;
+        public PotController(
+        IPotService potService,
+        ILogger<PotController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _potService = potService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -18,7 +29,17 @@ namespace CRM.Controllers
             try
             {
                 var pots = await _potService.GetAllAsync();
-                return Ok(pots);
+                var soilDropdown = await GetDropdownAsync(SoilTypeColumns.TableName, SoilTypeColumns.SoilType, primaryKey: SoilTypeColumns.SoilTypeId);
+
+                var response = new
+                {
+                    data = pots,
+                    lookups = new Dictionary<string, IEnumerable<DropdownItemDTO>>
+                    {
+                        { nameof(Plot.SoilTypeId) , soilDropdown }
+                    },
+                };
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -52,7 +73,7 @@ namespace CRM.Controllers
             try
             {
                 int id = await _potService.AddAsync(pot);
-                return CreatedAtAction(nameof(GetById), id, pot);
+                return CreatedAtAction(nameof(GetById), new { id }, new Pot(id, pot));
             }
             catch (Exception ex)
             {

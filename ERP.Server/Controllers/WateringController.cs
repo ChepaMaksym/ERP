@@ -1,16 +1,27 @@
 ﻿using CRM.DTO.Watering;
 using CRM.Models;
+using CRM.QueryManagers.Tables;
 using CRM.Services.Interface;
+using ERP.Server.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Numerics;
 
 namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class WateringController(IWateringService wateringService, ILogger<WateringController> logger) : BaseController<Watering>(logger)
+    public class WateringController : BaseController<Watering>
     {
-        private readonly IWateringService _wateringService = wateringService;
+        private readonly IWateringService _wateringService;
+        public WateringController(
+        IWateringService wateringService,
+        ILogger<WateringController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _wateringService = wateringService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -18,7 +29,19 @@ namespace CRM.Controllers
             try
             {
                 var watering = await _wateringService.GetAllAsync();
-                return Ok(watering);
+                var plotsDropdown = await GetDropdownAsync(PlotColumns.TableName, PlotColumns.Name, primaryKey: PlotColumns.PlotId);
+
+                var response = new
+                {
+                    data = watering,
+                    lookups = new Dictionary<string, IEnumerable<DropdownItemDTO>>
+                    {
+                        { nameof(Plot.PlotId) , plotsDropdown },
+                    },
+                    dateFields = new[] { nameof(Watering.Date) }
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -52,7 +75,7 @@ namespace CRM.Controllers
             try
             {
                 int id = await _wateringService.AddAsync(watering);
-                return CreatedAtAction(nameof(GetById), id, watering);
+                return CreatedAtAction(nameof(GetById), new { id }, new Watering(id, watering));
             }
             catch (Exception ex)
             {

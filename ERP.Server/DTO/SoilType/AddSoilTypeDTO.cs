@@ -5,7 +5,8 @@ namespace CRM.DTO.SoilType
     public class AddSoilTypeDTO
     {
         [Required]
-        [Range(5, 50, ErrorMessage = "Type length must be between 5 and 50 characters.")]
+        [MinLength(5, ErrorMessage = "SoilTypeName must be at least 5 characters.")]
+        [MaxLength(50, ErrorMessage = "SoilTypeName must be at most 50 characters.")]
         public string SoilTypeName { get; set; } = string.Empty;
     }
 }

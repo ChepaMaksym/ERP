@@ -8,13 +8,13 @@ using System.Diagnostics;
 
 namespace CRM.Services
 {
-    public class GardenService(string connectionString) : IFieldService
+    public class FieldService(string connectionString) : IFieldService
     {
         private readonly string _connectionString = connectionString;
 
-        public async Task<IEnumerable<Garden>> GetAllAsync()
+        public async Task<IEnumerable<Field>> GetAllAsync()
         {
-            var gardens = new List<Garden>();
+            var gardens = new List<Field>();
             using (var connection = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(GardenQueryManager.GetAllGardens, connection);
@@ -22,7 +22,7 @@ namespace CRM.Services
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    gardens.Add(new Garden
+                    gardens.Add(new Field
                     {
                         GardenId = (int)reader[GardenColumns.GardenId],
                         Size = (decimal)reader[GardenColumns.Size]
@@ -32,9 +32,9 @@ namespace CRM.Services
             return gardens;
         }
 
-        public async Task<Garden> GetByIdAsync(int id)
+        public async Task<Field> GetByIdAsync(int id)
         {
-            Garden? garden = null;
+            Field? garden = null;
             using (var connection = new SqlConnection(_connectionString))
             {
                 var command = new SqlCommand(GardenQueryManager.GetGardenById, connection);
@@ -43,7 +43,7 @@ namespace CRM.Services
                 using var reader = await command.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
                 {
-                    garden = new Garden
+                    garden = new Field
                     {
                         GardenId = (int)reader[GardenColumns.GardenId],
                         Size = (decimal)reader[GardenColumns.Size]

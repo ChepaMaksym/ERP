@@ -1,6 +1,9 @@
 ﻿using CRM.DTO.Plot;
 using CRM.Models;
+using CRM.QueryManagers.Tables;
+using CRM.Services;
 using CRM.Services.Interface;
+using ERP.Server.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,17 +11,37 @@ namespace CRM.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PlotController(IPlotService plotService, ILogger<PlotController> logger) : BaseController<Plot>(logger)
+    public class PlotController : BaseController<Plot>
     {
-        private readonly IPlotService _plotService = plotService;
+        private readonly IPlotService _plotService;
+        public PlotController(
+        IPlotService plotService,
+        ILogger<PlotController> logger,
+        IConfiguration configuration)
+        : base(logger, configuration.GetConnectionString("DefaultConnection"))
+        {
+            _plotService = plotService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             try
             {
+        //                public int GardenId { get; set; }
                 var plots = await _plotService.GetAllAsync();
-                return Ok(plots);
+                var soilDropdown = await GetDropdownAsync(SoilTypeColumns.TableName, SoilTypeColumns.SoilType, primaryKey: SoilTypeColumns.SoilTypeId);
+
+                var response = new
+                {
+                    data = plots,
+                    lookups = new Dictionary<string, IEnumerable<DropdownItemDTO>>
+                    {
+                        { nameof(Plot.SoilTypeId) , soilDropdown }
+                    },
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -52,7 +75,7 @@ namespace CRM.Controllers
             try
             {
                 int id = await _plotService.AddAsync(plot);
-                return CreatedAtAction(nameof(GetById), id, plot);
+                return CreatedAtAction(nameof(GetById), new { id }, new Plot(id, plot));
             }
             catch (Exception ex)
             {

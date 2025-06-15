@@ -13,9 +13,14 @@ interface WateringGrid extends EditableRow {
 enum WateringGridKeys {
   WateringId = "wateringId",
 }
-
+const emptyTemplate: WateringGrid = {
+  PlotId: 0,
+  Date: new Date(),
+  Amount: 0,
+  isEditing: true
+};
 const SoilTypePage: React.FC = () => {
-  const tableData = useTableData<WateringGrid>("watering"); 
+  const tableData = useTableData<WateringGrid>("watering", emptyTemplate); 
   return (
     <div>
       <h1>Manage Watering</h1>

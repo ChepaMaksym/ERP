@@ -4,7 +4,7 @@ import { EditableRow } from "../types";
 import useTableData from "../hooks/useTableData";
 
 
-interface GardenGrid extends EditableRow {
+interface FieldGrid extends EditableRow {
   GardenId: number;
   Size: number;
 }
@@ -12,14 +12,14 @@ enum GardenGridKeys {
   GardenId = "gardenId",
 }
 
-const GardenPage: React.FC = () => {
-  const tableData = useTableData<GardenGrid>("field"); 
+const FieldPage: React.FC = () => {
+  const tableData = useTableData<FieldGrid>("field"); 
   return (
     <div>
-      <h1>Manage Gardens</h1>
-      <Grid<GardenGrid> tableData={tableData} primaryKey={GardenGridKeys.GardenId} />
+      <h1>Manage Fields</h1>
+      <Grid<FieldGrid> tableData={tableData} primaryKey={GardenGridKeys.GardenId} />
     </div>
   );
 };
 
-export default GardenPage;
+export default FieldPage;
